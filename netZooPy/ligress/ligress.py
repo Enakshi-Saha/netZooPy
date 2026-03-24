@@ -14,7 +14,7 @@ import pandas as pd
 
 class Ligress(Panda):
     """
-    Lioness-Inferred Gene REgulatory Sample-Specific networks 
+    Learning Individual-specific Gene REgulation through Sample-Specific inference
         1. Reading in input data (expression, motif prior table, TF PPI data)
         2. Preparing motif prior universe
         3. Estimating sample-specific coexpression with lioness
@@ -74,7 +74,7 @@ class Ligress(Panda):
     ----------
     .. [1]__ 
 
-    Authors: Viola Fanfani, Enakshi Saha
+    Authors: Enakshi Saha, Viola Fanfani
     """
 
     def __init__(
@@ -243,6 +243,7 @@ class Ligress(Panda):
         #self.expression_data_centered = (self.expression_data - np.mean(self.expression_data.values,axis = 1, keepdims=True))
 
         self.expression_mean = np.nanmean(self.expression_data.values,axis = 1, keepdims=True)
+        self.covariance_matrix = self.expression_data.T.cov().values
 
         
         if th_motifs>len(self.prior2sample_dict.keys()):
@@ -329,16 +330,16 @@ class Ligress(Panda):
                  
         #correlation_matrix = self.expression_data.loc[:, touse].T.corr().values
         # Compute covariance matrix from the rest of the data, leaving out sample
-        covariance_matrix = self.expression_data.loc[:, touse].T.cov().values
+        # covariance_matrix = self.expression_data.loc[:, touse].T.cov().values
         
         #correlation_matrix = self.expression_data.loc[:, touse].T.corr().values
         
         # Compute covariance matrix from the rest of the data, leaving out sample
-        covariance_matrix = self.expression_data.loc[:, touse].T.cov().values
+        # covariance_matrix = self.expression_data.loc[:, touse].T.cov().values
         
         # Compute posterior weight delta from data
         if (tune_delta):
-            delta = 1/( 3 + 2 * np.sqrt(covariance_matrix.diagonal()).mean()/covariance_matrix.diagonal().var())
+            delta = 1/( 3 + 2 * np.sqrt(self.covariance_matrix.diagonal()).mean()/self.covariance_matrix.diagonal().var())
 
        
         # For consistency with R, we are using the N panda_all - (N-1) panda_all_but_q
@@ -349,15 +350,12 @@ class Ligress(Panda):
         #)
         
         # Compute sample-specific covariance matrix
-        sscov = delta * np.outer((self.expression_data-self.expression_mean).loc[:, sample], (self.expression_data-self.expression_mean).loc[:, sample]) + (1-delta) * covariance_matrix
+        sscov = delta * np.outer((self.expression_data-self.expression_mean).loc[:, sample], (self.expression_data-self.expression_mean).loc[:, sample]) + (1-delta) * self.covariance_matrix
 
         # we no longer need coexpression
         #lioness_network = coexpression - (
         #        (self.get_n_matrix(self.expression_data.loc[:, touse])) * correlation_matrix
         #)
-        
-        # Compute sample-specific covariance matrix
-        sscov = delta * np.outer((self.expression_data-self.expression_mean).loc[:, sample], (self.expression_data-self.expression_mean).loc[:, sample]) + (1-delta) * covariance_matrix
 
         # Compute sample-specific coexpression matrix from the sample-specific covariance matrix
         
@@ -388,7 +386,7 @@ class Ligress(Panda):
                 #if self.save_fmt == "txt":
                 #np.savetxt(path+'.txt', coexp)
                 #elif self.save_fmt == "npy":
-                np.save(path+'.npy', coexp)
+                np.save(path+'.npy', lioness_network.values)
                 # write the gene names
                 with open(path_genename+'.txt', 'w') as fp:
                     for item in names:
@@ -398,9 +396,9 @@ class Ligress(Panda):
                 #    from scipy.io import savemat
                 #    savemat(path, {"SSCoexp": coexp})
             else:
-                pd.DataFrame(data = coexp, columns=names, index = names).to_csv(cfolder+'coexpression_'+sample+'.txt', sep = ' ')
+                pd.DataFrame(data = lioness_network.values, columns=names, index = names).to_csv(cfolder+'coexpression_'+sample+'.txt', sep = ' ')
         
-        return(pd.DataFrame(data = coexp, index = names, columns=names))
+        return(lioness_network)
 
 
 
