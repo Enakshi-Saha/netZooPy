@@ -214,9 +214,11 @@ def prepare_expression(expression_filename, samples = None):
     # a list of sample of interest is passed
     print(samples)
     if type(expression_filename) is str:
-        
+        # get the name of the first column (gene index column)
+        first_col = pd.read_csv(expression_filename, sep='\t', nrows=0).columns[0]
+
         if (isinstance(samples, list)):
-            expression_data = read_expression(expression_filename, usecols = samples)
+            expression_data = read_expression(expression_filename, usecols=[first_col] + list(samples))
         else:
             expression_data = read_expression(expression_filename)
             
