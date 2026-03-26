@@ -388,7 +388,7 @@ class Ligress(Panda):
                 #if self.save_fmt == "txt":
                 #np.savetxt(path+'.txt', coexp)
                 #elif self.save_fmt == "npy":
-                np.save(path+'.npy', coexp)
+                np.save(path+'.npy', lioness_network.values)
                 # write the gene names
                 with open(path_genename+'.txt', 'w') as fp:
                     for item in names:
@@ -398,9 +398,9 @@ class Ligress(Panda):
                 #    from scipy.io import savemat
                 #    savemat(path, {"SSCoexp": coexp})
             else:
-                pd.DataFrame(data = coexp, columns=names, index = names).to_csv(cfolder+'coexpression_'+sample+'.txt', sep = ' ')
+                pd.DataFrame(data = lioness_network, columns=names, index = names).to_csv(cfolder+'coexpression_'+sample+'.txt', sep = ' ')
         
-        return(pd.DataFrame(data = coexp, index = names, columns=names))
+        return(lioness_network)
 
 
 
