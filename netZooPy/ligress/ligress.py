@@ -74,7 +74,7 @@ class Ligress(Panda):
     ----------
     .. [1]__ 
 
-    Authors: Enakshi Saha, Viola Fanfani
+    Authors: Enakshi Saha
     """
 
     def __init__(
